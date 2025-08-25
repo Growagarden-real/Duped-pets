@@ -13,24 +13,25 @@ local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 
+-- Screen GUI Setup
 local screenGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
-screenGui.Name = "KuniPetAgeLeveller"
+screenGui.Name = "KuniPetDuplicator"
 screenGui.ResetOnSpawn = false
 screenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
 -- Main Frame
 local frame = Instance.new("Frame", screenGui)
-frame.Size = UDim2.new(0, 300, 0, 180)
-frame.Position = UDim2.new(0.5, -150, 0.5, -90)
+frame.Size = UDim2.new(0, 300, 0, 160)
+frame.Position = UDim2.new(0.5, -150, 0.5, -80)
 frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 frame.Active = true
 frame.Draggable = true
-frame.Name = "PetAgeFrame"
+frame.Name = "PetDuplicateFrame"
 Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 10)
 
 -- Title
 local title = Instance.new("TextLabel", frame)
-title.Text = "Pet Age Leveller v2"
+title.Text = "Pet Cloner v2"
 title.Font = Enum.Font.FredokaOne
 title.TextSize = 20
 title.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -58,56 +59,45 @@ local petInfo = Instance.new("TextLabel", frame)
 petInfo.Text = "Equipped Pet: [None]"
 petInfo.Font = Enum.Font.FredokaOne
 petInfo.TextSize = 16
-petInfo.TextColor3 = Color3.fromRGB(255, 255, 160)
+petInfo.TextColor3 = Color3.fromRGB(200, 200, 160)
 petInfo.BackgroundTransparency = 1
 petInfo.Position = UDim2.new(0, 12, 0, 40)
 petInfo.Size = UDim2.new(1, -24, 0, 24)
 petInfo.TextXAlignment = Enum.TextXAlignment.Left
 
--- "Set Age to 50" Button (White Style)
-local button = Instance.new("TextButton", frame)
-button.Text = "Set Age to 50"
-button.Font = Enum.Font.FredokaOne
-button.TextSize = 16
-button.TextColor3 = Color3.fromRGB(40, 40, 40)
-button.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-button.Size = UDim2.new(0, 220, 0, 36)
-button.Position = UDim2.new(0.5, -110, 0, 76)
-Instance.new("UICorner", button)
-
--- "Add +1 Age" Button (White Style)
-local addAgeButton = Instance.new("TextButton", frame)
-addAgeButton.Text = "Add +1 Age"
-addAgeButton.Font = Enum.Font.FredokaOne
-addAgeButton.TextSize = 16
-addAgeButton.TextColor3 = Color3.fromRGB(40, 40, 40)
-addAgeButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-addAgeButton.Size = UDim2.new(0, 220, 0, 36)
-addAgeButton.Position = UDim2.new(0.5, -110, 0, 122)
-Instance.new("UICorner", addAgeButton)
+-- Duplicate Pet Button (White Style)
+local dupeButton = Instance.new("TextButton", frame)
+dupeButton.Text = "Duplicate Pet"
+dupeButton.Font = Enum.Font.FredokaOne
+dupeButton.TextSize = 16
+dupeButton.TextColor3 = Color3.fromRGB(40, 40, 40) -- Dark text
+dupeButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255) -- White button
+dupeButton.Size = UDim2.new(0, 220, 0, 36)
+dupeButton.Position = UDim2.new(0.5, -110, 0, 76)
+Instance.new("UICorner", dupeButton)
 
 -- Footer Label
 local footer = Instance.new("TextLabel", frame)
 footer.Text = "Tiktok: @yawiyawiyawiz1"
 footer.Font = Enum.Font.FredokaOne
 footer.TextSize = 13
-footer.TextColor3 = Color3.fromRGB(180, 180, 180)
+footer.TextColor3 = Color3.fromRGB(150, 150, 150)
 footer.BackgroundTransparency = 1
 footer.Size = UDim2.new(1, 0, 0, 20)
 footer.Position = UDim2.new(0, 0, 1, -20)
 
--- Function to get equipped pet tool
+-- Get equipped pet
 local function getEquippedPetTool()
 	character = player.Character or player.CharacterAdded:Wait()
-	for _, child in pairs(character:GetChildren()) do
-		if child:IsA("Tool") and child.Name:find("Age") then
-			return child
+	for _, tool in pairs(character:GetChildren()) do
+		if tool:IsA("Tool") and tool:FindFirstChild("Handle") then
+			return tool
 		end
 	end
 	return nil
 end
 
--- Update GUI pet name
+-- Update pet label
 local function updateGUI()
 	local pet = getEquippedPetTool()
 	if pet then
@@ -117,57 +107,43 @@ local function updateGUI()
 	end
 end
 
--- Set Age to 50 Button Logic (with 20s countdown)
-button.MouseButton1Click:Connect(function()
-	local tool = getEquippedPetTool()
-	if tool then
-		for i = 20, 1, -1 do
-			button.Text = "Changing Age in " .. i .. "..."
-			task.wait(1)
-		end
-		local newName = tool.Name:gsub("%[Age%s%d+%]", "[Age 50]")
-		tool.Name = newName
-		petInfo.Text = "Equipped Pet: " .. tool.Name
-		button.Text = "Set Age to 50"
-	else
-		button.Text = "No Pet Equipped!"
-		task.wait(2)
-		button.Text = "Set Age to 50"
+-- Error message popup
+local function showErrorMessage(text)
+	local errorLabel = Instance.new("TextLabel", screenGui)
+	errorLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+	errorLabel.Position = UDim2.new(0.5, 0, 0.45, 0)
+	errorLabel.Size = UDim2.new(0, 250, 0, 40)
+	errorLabel.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+	errorLabel.Text = text
+	errorLabel.Font = Enum.Font.FredokaOne
+	errorLabel.TextSize = 16
+	errorLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+	errorLabel.ZIndex = 30
+	Instance.new("UICorner", errorLabel)
+
+	task.delay(2.5, function()
+		errorLabel:Destroy()
+	end)
+end
+
+-- Instant duplication (no loading)
+dupeButton.MouseButton1Click:Connect(function()
+	local equipped = getEquippedPetTool()
+	if not equipped then
+		showErrorMessage("No Equipped Pet Detected")
+		return
 	end
+
+	local clone = equipped:Clone()
+	clone.Name = equipped.Name
+	clone.Parent = player.Backpack
+	dupeButton.Text = "Pet Duplicated!"
+
+	task.wait(1.5)
+	dupeButton.Text = "Duplicate Pet"
 end)
 
--- Add +1 Age Button Logic (with 5s countdown, up to 100)
-addAgeButton.MouseButton1Click:Connect(function()
-	local tool = getEquippedPetTool()
-	if tool then
-		local currentAge = tonumber(tool.Name:match("%[Age%s(%d+)%]"))
-		if currentAge and currentAge < 100 then
-			for i = 5, 1, -1 do
-				addAgeButton.Text = "Adding +1 in " .. i .. "..."
-				task.wait(1)
-			end
-			local newAge = currentAge + 1
-			local newName = tool.Name:gsub("%[Age%s%d+%]", "[Age " .. newAge .. "]")
-			tool.Name = newName
-			petInfo.Text = "Equipped Pet: " .. tool.Name
-			addAgeButton.Text = "Add +1 Age"
-		elseif currentAge and currentAge >= 100 then
-			addAgeButton.Text = "Max Age is 100!"
-			task.wait(2)
-			addAgeButton.Text = "Add +1 Age"
-		else
-			addAgeButton.Text = "Invalid Age Format!"
-			task.wait(2)
-			addAgeButton.Text = "Add +1 Age"
-		end
-	else
-		addAgeButton.Text = "No Pet Equipped!"
-		task.wait(2)
-		addAgeButton.Text = "Add +1 Age"
-	end
-end)
-
--- Auto refresh equipped pet display
+-- Keep pet name updated
 task.spawn(function()
 	while true do
 		updateGUI()
